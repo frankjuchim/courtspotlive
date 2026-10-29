@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Courts Overlay</title>
+<link rel="stylesheet" href="/overlay.css">
+<link rel="stylesheet" href="/config.css">
+<meta name="brand-logo" content="{{LOGO}}">
+</head>
+<body>
+<div class="stage" id="stage"></div>
+<script src="/live.js"></script>
+<script src="/overlay.js"></script>
+<script>
+  // Beide Courts auf einer Seite, optional mit Gesamtstand
+  CS.applyCommonParams();
+  var p = CS.params;
+  var opts = { short: p.get('names') !== 'full', sets: p.get('sets') !== '0' };
+  var stage = document.getElementById('stage');
+
+  // Standard: Court 1 links, Gesamtstand Mitte, Court 2 rechts (Kamera von hinten).
+  // ?layout=stack zeigt alles untereinander, ?pos=bottom setzt die Leiste nach unten.
+  var stack = p.get('layout') === 'stack';
+  if (!stack) stage.classList.add('split');
+  if (p.get('pos') === 'bottom') stage.classList.add('bottom');
+
+  CS.connect(function (state) {
+    stage.replaceChildren();
+    var total = p.get('total') === '1' ? Overlay.totalBar(state) : null;
+    var boards = [1, 2].map(function (nr) {
+      var board = Overlay.courtBoard(state, nr, opts);
+      // Freien Court unsichtbar machen, Platz aber behalten (Court 2 bleibt rechts)
+      if (board.classList.contains('idle') && p.get('showIdle') !== '1') board.classList.add('hidden');
+      return board;
+    });
+    if (stack) {
+      if (total) stage.appendChild(total);
+      var col = CS.el('div', 'stage-boards');
+      boards.forEach(function (b) { col.appendChild(b); });
+      stage.appendChild(col);
+    } else {
+      stage.appendChild(boards[0]);
+      var mid = CS.el('div', 'stage-mid');
+      if (total) mid.appendChild(total);
+      stage.appendChild(mid);
+      stage.appendChild(boards[1]);
+    }
+  });
+</script>
+</body>
+</html>

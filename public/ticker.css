@@ -1,0 +1,123 @@
+:root {
+  /* Akzentfarbe: wird von /config.css (Admin-Panel bzw. ACCENT) überschrieben */
+  --club: #1f5f99;
+  --club-dark: #16436b;
+  --link: #1f5f99;
+  --home: var(--club);
+  --away: #5a5f66;
+  --bg: #f3f5f8;
+  --card: #ffffff;
+  --text: #16202c;
+  --muted: #6a7686;
+  --line: #e1e6ec;
+  --accent: #fff;
+  --live: #1f5f99;
+  --done: #5a5f66;
+  --win-bg: #e4ecf5;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f141b;
+    --card: #19212b;
+    --text: #eef2f6;
+    --muted: #93a0b1;
+    --line: #2a3542;
+    --win-bg: #18304a;
+    --live: #4a80b5;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.35;
+}
+.wrap { max-width: 960px; margin: 0 auto; padding: 16px; }
+.brand { display: flex; align-items: center; gap: 12px; background: var(--club); color: #fff; border-radius: 12px 12px 0 0; padding: 10px 16px; }
+.brand img { height: 52px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+.brand b { font-size: 1.2rem; display: block; }
+.brand span { font-size: 0.85rem; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.08em; }
+.brand + .match { border-radius: 0 0 12px 12px; }
+h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 28px 0 10px; }
+.muted { color: var(--muted); }
+
+.match {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 18px 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.team-name { font-weight: 700; font-size: clamp(1rem, 3.5vw, 1.5rem); display: block; }
+.team.home { text-align: right; border-right: 5px solid var(--home); padding-right: 12px; }
+.team.away { border-left: 5px solid var(--away); padding-left: 12px; }
+.total { font-size: clamp(2.2rem, 9vw, 3.6rem); font-weight: 800; font-variant-numeric: tabular-nums; display: flex; gap: 6px; }
+.total i { font-style: normal; color: var(--muted); }
+.meta { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 0.9rem; }
+.meta:empty { display: none; }
+
+.now { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+.now-card { background: var(--club); color: #fff; border-radius: 12px; overflow: hidden; }
+.now-card.idle { opacity: 0.7; }
+.now-head { display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: var(--club-dark); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.now-head .court { color: #fff; font-weight: 800; }
+.now-head .muted { color: rgba(255,255,255,0.75); }
+.now-head .badge { margin-left: auto; }
+.now-head .badge.live { background: #fff; color: var(--club); }
+.now-row { display: flex; align-items: stretch; border-top: 1px solid rgba(255,255,255,0.18); }
+.now-row.winner .names { font-weight: 700; }
+.who { flex: 1; min-width: 0; padding: 6px 8px 6px 0; display: flex; flex-direction: column; }
+.who .club { font-size: 0.7rem; color: rgba(255,255,255,0.75); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who .names { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.serve { width: 22px; flex: none; position: relative; }
+.serve.on::after { content: ""; position: absolute; left: 8px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: #fff; }
+.now-row .set, .now-row .pts { width: 36px; flex: none; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.now-row .set { color: rgba(255,255,255,0.7); }
+.now-row .set.won { color: #fff; font-weight: 700; }
+.now-row .pts { width: 44px; background: #fff; color: var(--club); font-weight: 800; font-size: 1.25rem; }
+
+.badge { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; color: #fff; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+.badge.live { background: var(--live); }
+.badge.live::before { content: "● "; animation: blink 1.4s infinite; }
+.badge.done { background: var(--done); }
+@keyframes blink { 50% { opacity: 0.25; } }
+
+.games { display: flex; flex-direction: column; gap: 8px; }
+.game { background: var(--card); border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.06); border-left: 4px solid transparent; }
+.game.live { border-left-color: var(--live); }
+.game.finished { border-left-color: var(--done); }
+.g-title { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.g-name { font-weight: 700; }
+.g-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; }
+.g-side { display: flex; flex-direction: column; padding: 4px 8px; border-radius: 6px; }
+.g-side.home { text-align: right; }
+.g-side.winner { background: var(--win-bg); font-weight: 700; }
+.g-result { text-align: center; display: flex; flex-direction: column; min-width: 90px; }
+.g-won { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.g-sets { font-size: 0.85rem; color: var(--muted); white-space: pre; font-variant-numeric: tabular-nums; }
+
+.foot { margin: 24px 0 8px; text-align: center; font-size: 0.85rem; }
+.conn.ok { color: var(--muted); }
+.conn.warn { color: var(--live); }
+
+@media (max-width: 520px) {
+  .g-body { grid-template-columns: 1fr; }
+  .g-side.home, .g-side.away { text-align: left; }
+  .g-result { flex-direction: row; gap: 10px; align-items: baseline; justify-content: flex-start; padding: 0 8px; }
+  .g-side.home { border-left: 3px solid var(--home); }
+  .g-side.away { border-left: 3px solid var(--away); order: 3; }
+}
+
+/* Keine Begegnung / Ticker ausgeschaltet: nur Hinweis anzeigen */
+.no-match .total, .no-match .team.away, .no-match section { display: none; }
+.no-match .team.home { grid-column: 1 / -1; text-align: center; border: 0; padding: 12px 0; }
+.no-match .team-name { color: var(--muted); font-weight: 600; }
+
+.t-link { display: inline-block; margin-top: 6px; color: var(--link); font-size: 0.9rem; text-decoration: none; }
+.t-link:hover { text-decoration: underline; }

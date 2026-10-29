@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}} – Liveticker</title>
+<link rel="stylesheet" href="/ticker.css">
+<link rel="stylesheet" href="/config.css">
+<link rel="icon" href="{{LOGO}}">
+</head>
+<body>
+<main class="wrap">
+  <div class="brand">
+    <img src="{{LOGO}}" alt="" data-brand-logo>
+    <div><b data-brand="title">{{TITLE}}</b><span data-brand="subtitle">{{SUBTITLE}}</span></div>
+  </div>
+  <header class="match" id="match">
+    <div class="team home"><span class="team-name" id="homeName">–</span></div>
+    <div class="total"><span id="totalHome">0</span><i>:</i><span id="totalAway">0</span></div>
+    <div class="team away"><span class="team-name" id="awayName">–</span></div>
+    <div class="meta" id="meta"></div>
+    <div class="meta"><a class="t-link" id="tLink" target="_blank" rel="noopener" hidden>Mehr Infos ›</a></div>
+  </header>
+
+  <section class="now" id="now"></section>
+
+  <section>
+    <h2>Alle Spiele</h2>
+    <div class="games" id="games"></div>
+  </section>
+
+  <footer class="foot">
+    <span id="conn" class="conn">Verbinde …</span>
+  </footer>
+</main>
+
+<script src="/live.js"></script>
+<script>
+(function () {
+  'use strict';
+  CS.applyCommonParams();
+  var el = CS.el;
+  var last = null;
+  var lastSeen = null;
+
+  function sideName(state, side) {
+    return side === 'home' ? state.match.home : state.match.away;
+  }
+
+  function nowCard(state, court) {
+    var g = state.games.filter(function (x) { return x.id === court.game; })[0];
+    var card = el('article', 'now-card');
+    var head = el('div', 'now-head');
+    head.appendChild(el('span', 'court', 'Court ' + court.court));
+    if (!g || court.idle) {
+      head.appendChild(el('span', 'muted', 'frei'));
+      card.appendChild(head);
+      card.classList.add('idle');
+      return card;
+    }
+    head.appendChild(el('span', 'disc', g.name));
+    if (court.active && !g.winner) head.appendChild(el('span', 'badge live', 'LIVE'));
+    else if (g.winner) head.appendChild(el('span', 'badge done', 'Beendet'));
+    card.appendChild(head);
+
+    var sets = g.sets.slice();
+    var current = null;
+    if (!g.winner && sets.length && !sets[sets.length - 1].winner) current = sets.pop();
+    if (!g.winner && court.active && !current) current = { home: 0, away: 0 };
+
+    ['home', 'away'].forEach(function (side) {
+      var row = el('div', 'now-row ' + side + (g.winner === side ? ' winner' : ''));
+      row.appendChild(el('span', 'serve' + (court.serving === side && !g.winner ? ' on' : '')));
+      var who = el('div', 'who');
+      who.appendChild(el('span', 'club', sideName(state, side)));
+      who.appendChild(el('span', 'names', CS.players(g[side]).join(' / ') || '–'));
+      row.appendChild(who);
+      sets.forEach(function (s) {
+        row.appendChild(el('span', 'set' + (s.winner === side ? ' won' : ''), String(s[side])));
+      });
+      if (current) row.appendChild(el('span', 'pts', String(current[side])));
+      card.appendChild(row);
+    });
+    return card;
+  }
+
+  function gameRow(state, g) {
+    var row = el('article', 'game ' + g.status);
+    var title = el('div', 'g-title');
+    title.appendChild(el('span', 'g-name', g.name));
+    if (g.status === 'live') title.appendChild(el('span', 'badge live', g.court ? 'LIVE · Court ' + g.court : 'läuft'));
+    if (g.status === 'finished') title.appendChild(el('span', 'badge done', 'Beendet'));
+    row.appendChild(title);
+
+    var body = el('div', 'g-body');
+    ['home', 'away'].forEach(function (side) {
+      var p = el('div', 'g-side ' + side + (g.winner === side ? ' winner' : ''));
+      var names = CS.players(g[side]);
+      if (!names.length) p.appendChild(el('span', 'muted', 'Aufstellung folgt'));
+      names.forEach(function (n) { p.appendChild(el('span', 'g-player', n)); });
+      body.appendChild(p);
+    });
+    var res = el('div', 'g-result');
+    var won = el('span', 'g-won', g.sets.length ? g.setsWon[0] + ':' + g.setsWon[1] : '–');
+    res.appendChild(won);
+    var sets = el('span', 'g-sets');
+    sets.textContent = g.sets.map(function (s) { return s.home + ':' + s.away; }).join('  ');
+    res.appendChild(sets);
+    body.insertBefore(res, body.lastChild);
+    row.appendChild(body);
+    return row;
+  }
+
+  function render(state) {
+    last = state;
+    if (state && state.source && state.source.lastPushAt) lastSeen = new Date(state.source.lastPushAt);
+    var tl = document.getElementById('tLink');
+    tl.hidden = !(state && state.link);
+    if (state && state.link) tl.href = state.link;
+    var ready = state && state.match && state.match.ready;
+
+    var off = state && state.active === false;
+    document.body.classList.toggle('no-match', !ready);
+    document.getElementById('homeName').textContent = ready ? state.match.home : (off ? 'Liveticker derzeit nicht aktiv' : 'Noch keine Begegnung');
+    document.getElementById('awayName').textContent = ready ? state.match.away : '';
+    document.getElementById('totalHome').textContent = ready ? state.total.home : '–';
+    document.getElementById('totalAway').textContent = ready ? state.total.away : '–';
+    document.title = ready ? state.match.home + ' ' + state.total.home + ':' + state.total.away + ' ' + state.match.away + ' – Liveticker' : brandTitle + ' – Liveticker';
+
+    var meta = [];
+    if (ready) {
+      if (state.match.date) meta.push(state.match.date + (state.match.start ? ', ' + state.match.start : ''));
+      if (state.match.venue) meta.push(state.match.venue);
+      if (state.finished) meta.push('Endstand');
+    }
+    document.getElementById('meta').textContent = meta.join(' · ');
+
+    var now = document.getElementById('now');
+    now.replaceChildren();
+    if (ready) state.courts.forEach(function (c) { now.appendChild(nowCard(state, c)); });
+
+    var list = document.getElementById('games');
+    list.replaceChildren();
+    if (ready) state.games.forEach(function (g) { list.appendChild(gameRow(state, g)); });
+    updateConn();
+  }
+
+  function updateConn() {
+    var c = document.getElementById('conn');
+    if (!lastSeen) { c.textContent = 'Warte auf Daten aus der Halle …'; c.className = 'conn warn'; return; }
+    var age = (Date.now() - lastSeen.getTime()) / 1000;
+    var t = lastSeen.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if (age > 120 && !(last && last.finished)) {
+      c.textContent = 'Keine Verbindung zur Halle seit ' + t + ' Uhr – Daten evtl. nicht aktuell';
+      c.className = 'conn warn';
+    } else {
+      c.textContent = 'Zuletzt aktualisiert ' + t + ' Uhr';
+      c.className = 'conn ok';
+    }
+  }
+  setInterval(updateConn, 5000);
+
+  var brandTitle = document.querySelector('[data-brand="title"]').textContent;
+  CS.onBrand(function (b) { brandTitle = b.title; if (last) render(last); });
+  CS.connect(render, function (alive) {
+    if (alive.source && alive.source.lastPushAt) lastSeen = new Date(alive.source.lastPushAt);
+    updateConn();
+  });
+})();
+</script>
+</body>
+</html>

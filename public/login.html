@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Liveticker – Anmelden</title>
+<link rel="stylesheet" href="/ticker.css">
+<link rel="stylesheet" href="/config.css">
+<link rel="icon" href="{{LOGO}}">
+<style>
+  .wrap { max-width: 440px; }
+  .panel { background: var(--card); border-radius: 0 0 12px 12px; padding: 18px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  label { display: block; color: var(--muted); margin-bottom: 6px; }
+  input { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); }
+  button { font: inherit; margin-top: 12px; width: 100%; padding: 10px 14px; border: 0; border-radius: 8px; background: var(--club); color: #fff; cursor: pointer; }
+  #msg { margin-top: 10px; color: #c62828; font-weight: 700; min-height: 1.3em; }
+  @media (prefers-color-scheme: dark) { #msg { color: #ff6b6b; } }
+  .hint { font-size: 0.85rem; margin: 14px 0 0; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand">
+    <img src="{{LOGO}}" alt="">
+    <div><b>{{TITLE}}</b><span>{{SUBTITLE}} · Admin</span></div>
+  </div>
+  <section class="panel">
+    <form id="login">
+      <label for="pw">Admin-Passwort</label>
+      <input type="password" id="pw" autocomplete="current-password" autofocus required>
+      <button type="submit">Anmelden</button>
+      <div id="msg" role="alert"></div>
+    </form>
+    <p class="hint muted">Bei einer neuen Installation lautet das Passwort <code>courtspotadmin</code> – nach dem Anmelden
+      bitte im Admin-Panel ändern. Passwort vergessen? Siehe README, Abschnitt „Admin-Panel“.</p>
+  </section>
+</main>
+<script>
+(function () {
+  'use strict';
+  var msg = document.getElementById('msg');
+  document.getElementById('login').addEventListener('submit', function (e) {
+    e.preventDefault();
+    msg.textContent = '';
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ password: document.getElementById('pw').value }),
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, d: d }; });
+    }).then(function (x) {
+      if (x.ok) location.reload();
+      else msg.textContent = x.d.error || 'Anmelden fehlgeschlagen';
+    }).catch(function () { msg.textContent = 'Keine Verbindung zum Server'; });
+  });
+})();
+</script>
+</body>
+</html>

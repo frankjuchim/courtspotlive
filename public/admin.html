@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{TITLE}} – Admin</title>
+<link rel="stylesheet" href="/ticker.css">
+<link rel="stylesheet" href="/config.css">
+<link rel="icon" href="{{LOGO}}">
+<style>
+  .panel { background: var(--card); border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .brand + .panel { border-radius: 0 0 12px 12px; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; overflow-wrap: anywhere; }
+  code { background: var(--bg); padding: 2px 6px; border-radius: 4px; }
+  .ok { color: #1d7a33; font-weight: 700; }
+  .bad { color: #c62828; font-weight: 700; }
+  @media (prefers-color-scheme: dark) { .bad { color: #ff6b6b; } }
+  ul.links { margin: 0; padding-left: 18px; }
+  ul.links li { margin: 4px 0; }
+  ul.links a { color: inherit; }
+  #reset, .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  #reset input, .actions input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); }
+  #reset button, .actions button { font: inherit; padding: 8px 14px; border: 0; border-radius: 8px; background: var(--club); color: #fff; cursor: pointer; }
+  #resetMsg { margin-top: 8px; }
+  .fields { display: grid; grid-template-columns: max-content 1fr; gap: 10px 14px; align-items: center; }
+  .fields label { color: var(--muted); }
+  .fields input[type=text], .fields input[type=password] { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); width: 100%; max-width: 420px; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .swatch { width: 34px; height: 34px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; padding: 0; box-shadow: 0 0 0 1px var(--line); }
+  .swatch.on { border-color: var(--card); box-shadow: 0 0 0 2px var(--text); }
+  .custom-color { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+  .custom-color input[type=color] { width: 44px; height: 34px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; cursor: pointer; }
+  .custom-color input[type=text] { width: 110px; font-family: monospace; font-size: 0.95rem; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); }
+  .preview { margin-top: 16px; border-radius: 10px; overflow: hidden; max-width: 420px; color: #fff; }
+  .pv-brand { padding: 10px 14px; }
+  .pv-brand b { display: block; }
+  .pv-brand span { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+  .pv-head { padding: 5px 14px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .pv-row { display: flex; justify-content: space-between; align-items: stretch; border-top: 1px solid rgba(255,255,255,0.18); }
+  .pv-row span { padding: 6px 14px; }
+  .pv-row b { background: #fff; width: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+  .warn { color: var(--live); margin-top: 8px; }
+  .params { margin-top: 12px; }
+  .params summary { cursor: pointer; font-weight: 600; }
+  .params .ext-table td:first-child { white-space: nowrap; }
+  .params .ext-table td:last-child { font-weight: 400; white-space: normal; }
+  .ext-help { margin-top: 6px; font-size: 0.88rem; font-weight: 400; color: var(--text); }
+  .ext-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 10px 0; }
+  .ext-table th, .ext-table td { padding: 5px 8px; border-bottom: 1px solid var(--line, rgba(127,127,127,0.25)); text-align: left; vertical-align: top; }
+  .ext-table thead th { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+  .ext-table tbody th { font-weight: 400; }
+  .ext-table td { white-space: nowrap; }
+  .ext-table td:last-child { font-weight: 600; }
+  @media (max-width: 560px) { .ext-table td { white-space: normal; } }
+  .tpw-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .tpw-form input { flex: 1; min-width: 12em; font: inherit; font-family: ui-monospace, monospace; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--text); }
+  .tpw-form button { font: inherit; padding: 8px 14px; border: 0; border-radius: 8px; background: var(--club); color: #fff; cursor: pointer; }
+  .tpw-form button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .actions-row button { font: inherit; padding: 8px 14px; border: 0; border-radius: 8px; background: var(--club); color: #fff; cursor: pointer; }
+  .actions-row button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .actions-row button:disabled { opacity: 0.5; cursor: default; }
+  .actions-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .upd-log { max-height: 16em; overflow: auto; user-select: text; word-break: normal; }
+  #updChanges ul { margin: 8px 0 0; padding-left: 1.2em; font-size: 0.9rem; }
+  #updChanges li span { color: var(--muted); font-size: 0.85em; }
+  pre.cmd { background: var(--bg); padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; font-size: 0.85rem; margin: 8px 0; user-select: all; }
+  .logo-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .logo-box { width: 72px; height: 72px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .logo-box img { max-width: 60px; max-height: 60px; object-fit: contain; }
+  .logo-row button { font: inherit; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); cursor: pointer; }
+  .pv-brand { display: flex; align-items: center; gap: 10px; }
+  .pv-brand img { height: 36px; max-width: 80px; object-fit: contain; }
+  /* Speichern-Leiste bleibt am unteren Rand sichtbar, solange der Bereich im Bild ist */
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px -16px 0; align-items: center;
+    position: sticky; bottom: 0; z-index: 2; background: var(--card); padding: 10px 16px;
+    border-top: 1px solid var(--line); box-shadow: 0 -4px 10px rgba(0,0,0,0.06); }
+  .actions button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .brand .logout { margin-left: auto; font: inherit; font-size: 0.85rem; padding: 6px 12px; border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.6); background: transparent; color: #fff; cursor: pointer; }
+  .alert { background: #fff4e5; color: #6b3d00; border: 1px solid #f0c27b; border-radius: 10px; padding: 12px 14px; margin-top: 16px; }
+  @media (prefers-color-scheme: dark) { .alert { background: #3a2a10; color: #ffd9a0; border-color: #7a5520; } }
+  .alert button { font: inherit; margin-left: 8px; padding: 4px 10px; border-radius: 6px; border: 0; background: var(--club); color: #fff; cursor: pointer; }
+  #pwForm { display: grid; grid-template-columns: max-content minmax(0, 300px); gap: 10px 14px; align-items: center; }
+  #pwForm label { color: var(--muted); }
+  #pwForm button { justify-self: start; }
+  @media (max-width: 520px) { #pwForm { grid-template-columns: 1fr; } }
+  .secret { cursor: pointer; }
+  .designs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+  .design { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border-radius: 10px;
+    border: 2px solid var(--line); background: var(--card); color: var(--text); font: inherit; cursor: pointer; }
+  .design.on { border-color: var(--text); }
+  .design .dlogo { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .design .dlogo img { max-width: 32px; max-height: 32px; object-fit: contain; }
+  ol.steps { margin: 0; padding-left: 1.3em; }
+  ol.steps > li { margin: 0 0 14px; }
+  ol.steps > li:last-child { margin-bottom: 0; }
+  .toggle { display: inline-flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand">
+    <img src="{{LOGO}}" alt="" data-brand-logo>
+    <div><b data-brand="title">{{TITLE}}</b><span><span data-brand="subtitle">{{SUBTITLE}}</span> · Admin</span></div>
+    <button type="button" class="logout" id="logout">Abmelden</button>
+  </div>
+  <div class="alert" id="defaultPwAlert" hidden>
+    <b>Das Admin-Passwort ist noch das Standardpasswort.</b> Jeder, der es kennt, kann hier Einstellungen ändern.
+    <button type="button" id="toPw">Jetzt ändern</button>
+  </div>
+  <section class="panel">
+    <dl>
+      <dt>CourtSpot</dt><dd id="srcState">–</dd>
+      <dt>Ticker in CourtSpot</dt><dd id="srcOn">–</dd>
+      <dt>Begegnung</dt><dd id="mName">–</dd>
+      <dt>Spiele</dt><dd id="gameCount">–</dd>
+      <dt>Letzte Daten</dt><dd id="lastPush">–</dd>
+      <dt>Letzte Änderung</dt><dd id="lastChange">–</dd>
+      <dt>Erweiterung</dt><dd id="agentState">–</dd>
+      <dt>Adresse für CourtSpot</dt><dd><code class="srvUrl"></code></dd>
+    </dl>
+  </section>
+
+  <h2>Einrichtung in CourtSpot</h2>
+  <section class="panel">
+    <ol class="steps">
+      <li><b>CourtSpot-Erweiterung installieren</b> – einmalig auf dem Rechner bzw. Container, auf dem CourtSpot läuft
+        (z. B. in Proxmox: CourtSpot-Container → <i>Console</i>, als root):
+        <pre class="cmd" id="installCmd"></pre>
+        <span class="muted" style="font-size:0.88rem">Installiert einen kleinen Dienst, der die CourtSpot-Datenbank liest und
+          den Stand hierher schickt (kein offenes Browserfenster nötig), und baut im CourtSpot-Hauptmenü den Bereich
+          „3. Liveticker“ ein. Erneut ausführen = Update. Voraussetzung: CourtSpot unter Linux (Debian/Ubuntu, z. B. die
+          Proxmox-Version) mit PHP. Gleiches Ergebnis direkt von GitHub:</span>
+        <pre class="cmd">curl -fsSL https://raw.githubusercontent.com/frankjuchim/courtspotlive/main/courtspot/install.sh | bash</pre></li>
+      <li><b>Adresse und Passwort eintragen</b> – im CourtSpot-Hauptmenü bei <b>„3. Liveticker“ → Einstellungen</b>:
+        <dl style="margin-top:6px">
+          <dt>Liveticker-Adresse</dt><dd><code class="srvUrl"></code></dd>
+          <dt>Ticker-Passwort</dt><dd><code class="secret" id="tickerPw" title="Klicken zum Anzeigen">•••••••• (anzeigen)</code></dd>
+        </dl>
+        <span class="muted" style="font-size:0.88rem">„Speichern &amp; testen“ prüft sofort die Verbindung. Läuft der Ticker
+          unter einer anderen Adresse als dieser (z. B. öffentlich über einen Reverse-Proxy), die Adresse eintragen, unter
+          der CourtSpot ihn erreicht.</span></li>
+      <li><b>Einschalten</b> – im CourtSpot-Menü auf <b>AUS (einschalten)</b> klicken. Oben steht dann
+        „CourtSpot: verbunden“.</li>
+    </ol>
+  </section>
+
+  <h2 id="tpwSection">Ticker-Passwort für CourtSpot</h2>
+  <section class="panel">
+    <p class="muted" style="margin-top:0">Mit diesem Passwort schickt CourtSpot die Daten an den Liveticker.
+      <span id="tpwSource"></span></p>
+    <form id="tpwForm" class="tpw-form">
+      <input type="text" id="tpwInput" autocomplete="off" spellcheck="false" maxlength="100"
+        pattern="[A-Za-z0-9._~\-]{6,100}" placeholder="neues Passwort" required>
+      <button type="button" id="tpwGen" class="secondary">Zufällig erzeugen</button>
+      <button type="submit">Speichern</button>
+      <button type="button" id="tpwReset" class="secondary" hidden>Auf Konfiguration zurücksetzen</button>
+    </form>
+    <p class="muted" style="font-size:0.85rem;margin-bottom:0">6 bis 100 Zeichen: Buchstaben ohne Umlaute, Ziffern und <code>- _ . ~</code>.
+      Gilt sofort – danach im CourtSpot-Menü unter „3. Liveticker → Einstellungen“ eintragen, sonst kommen keine Daten mehr an.</p>
+    <div id="tpwMsg" style="margin-top:8px"></div>
+  </section>
+
+  <h2>Seiten &amp; Overlays</h2>
+  <section class="panel">
+    <ul class="links" id="links"></ul>
+    <details class="params">
+      <summary>Parameter für die Overlays</summary>
+      <p class="muted">Parameter an die Adresse hängen, mehrere mit <code>&amp;</code> verbinden –
+        z. B. <code>/courts?total=1&amp;pos=bottom</code>. In OBS: Browser-Quelle mit 1920 × 1080, der Hintergrund ist transparent.</p>
+      <table class="ext-table">
+        <thead><tr><th>Parameter</th><th>Wirkung</th></tr></thead>
+        <tbody>
+          <tr><td><code>total=1</code></td><td>Gesamtstand mit Logo in der Mitte (<code>/courts</code>) bzw. über dem Court (<code>/court/1</code>)</td></tr>
+          <tr><td><code>pos=bottom</code></td><td>Anzeigen am unteren statt am oberen Bildrand (<code>/courts</code>)</td></tr>
+          <tr><td><code>layout=stack</code></td><td>Courts untereinander statt links/rechts (<code>/courts</code>)</td></tr>
+          <tr><td><code>scale=1.2</code></td><td>alles größer oder kleiner</td></tr>
+          <tr><td><code>names=full</code></td><td>volle Vornamen statt „M. Muster“</td></tr>
+          <tr><td><code>sets=0</code></td><td>fertige Sätze ausblenden</td></tr>
+          <tr><td><code>showIdle=1</code></td><td>freien Court als „Kein laufendes Spiel“ zeigen (sonst unsichtbar)</td></tr>
+          <tr><td><code>bg=00ff00</code></td><td>Hintergrundfarbe statt transparent (z. B. Chroma-Key)</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-bottom:0">Ticker-Seite: <code>home=</code>/<code>away=</code> setzen die Teamfarben (Hex ohne #).</p>
+    </details>
+  </section>
+
+  <h2>Erscheinungsbild</h2>
+  <section class="panel">
+    <form id="brand">
+      <p class="muted" style="margin-top:0">Änderungen werden erst mit <b>Speichern</b> übernommen (ein neues Logo sofort beim
+        Hochladen). Gilt für Ticker-Seite und Overlays.</p>
+      <div id="designBox" hidden>
+        <h3 style="font-size:0.95rem;margin:0 0 8px">Design</h3>
+        <div class="designs" id="designs"></div>
+      </div>
+      <div class="fields">
+        <label for="bTitle">Titel</label>
+        <input type="text" id="bTitle" maxlength="80" placeholder="z. B. Vereinsname">
+        <label for="bSubtitle">Untertitel</label>
+        <input type="text" id="bSubtitle" maxlength="80" placeholder="z. B. Badminton · Liveticker">
+        <label for="bLink">Link im Ticker</label>
+        <input type="text" id="bLink" maxlength="500" inputmode="url" placeholder="optional, z. B. Liga auf turnier.de">
+      </div>
+      <h3 style="font-size:0.95rem;margin:18px 0 8px">Logo</h3>
+      <div class="logo-row">
+        <div class="logo-box" id="logoBox"><img id="logoImg" alt="Aktuelles Logo"></div>
+        <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+        <button type="button" id="logoPick">Logo hochladen …</button>
+        <button type="button" id="logoRemove" hidden>Logo entfernen</button>
+        <span class="muted">PNG, JPG, WebP oder SVG bis 10 MB – am besten mit transparentem Hintergrund.
+          Wird beim Hochladen sofort gespeichert.</span>
+      </div>
+
+      <h3 style="font-size:0.95rem;margin:18px 0 8px">Farbe</h3>
+      <div class="swatches" id="swatches"></div>
+      <div class="custom-color">
+        <input type="color" id="bColor" aria-label="Eigene Farbe wählen">
+        <input type="text" id="bHex" maxlength="7" aria-label="Farbe als Hex-Wert">
+        <span class="muted">eigene Farbe</span>
+      </div>
+      <div class="warn" id="contrastWarn" hidden>Diese Farbe ist sehr hell – weiße Schrift darauf ist schlecht lesbar.</div>
+
+      <div class="preview" id="preview" aria-label="Vorschau">
+        <div class="pv-brand"><img id="pvLogo" alt=""><div><b id="pvTitle"></b><span id="pvSubtitle"></span></div></div>
+        <div class="pv-head" id="pvHead">Court 1 · 1. Herrendoppel · Live</div>
+        <div class="pv-row"><span>● M. Muster / T. Test</span><b class="pv-pts">11</b></div>
+        <div class="pv-row"><span>A. Beispiel / B. Probe</span><b class="pv-pts">9</b></div>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Speichern</button>
+        <button type="button" class="secondary" id="bDefault">Auf Standard zurücksetzen</button>
+        <span class="bad" id="bDirty" hidden>Nicht gespeicherte Änderungen</span>
+        <span id="brandMsg"></span>
+      </div>
+      <p class="muted" style="margin-bottom:0">Offene Seiten und OBS-Overlays übernehmen Änderungen ohne Neuladen.
+        Standardwerte kommen aus <code>/etc/courtspotlive.env</code>.</p>
+    </form>
+  </section>
+
+  <h2>Angezeigten Stand zurücksetzen</h2>
+  <section class="panel">
+    <p class="muted" style="margin-top:0">Leert die Anzeige (z. B. nach Testspielen). Ist CourtSpot verbunden und eingeschaltet,
+      erscheint dessen aktueller Stand spätestens nach 30 Sekunden wieder – für einen neuen Spieltag also in CourtSpot
+      die Datenbank zurücksetzen bzw. die neue Begegnung anlegen.</p>
+    <form id="reset">
+      <button type="submit">Anzeige leeren</button>
+    </form>
+    <div id="resetMsg"></div>
+  </section>
+
+  <h2 id="updSection">Update</h2>
+  <section class="panel">
+    <dl id="updVersions">
+      <dt>Installiert</dt><dd id="updInstalled">–</dd>
+      <dt>Neueste Version</dt><dd id="updLatest">–</dd>
+    </dl>
+    <div id="updChanges"></div>
+    <p id="updText" class="muted" style="margin-bottom:0"></p>
+    <div class="actions-row" id="updActions" hidden>
+      <button type="button" id="updStart" hidden>Jetzt aktualisieren</button>
+      <button type="button" id="updCheck" class="secondary">Erneut prüfen</button>
+    </div>
+    <div id="updMsg" style="margin-top:8px"></div>
+    <pre class="cmd upd-log" id="updLog" hidden></pre>
+  </section>
+
+  <h2 id="pwSection">Admin-Passwort ändern</h2>
+  <section class="panel">
+    <p id="pwEnv" class="muted" style="margin:0" hidden>Das Admin-Passwort ist über die Variable <code>ADMIN_PASSWORD</code>
+      festgelegt und wird dort geändert (danach den Dienst neu starten).</p>
+    <form id="pwForm">
+      <label for="pwCur">Aktuelles Passwort</label>
+      <input type="password" id="pwCur" autocomplete="current-password" required>
+      <label for="pwNew">Neues Passwort</label>
+      <input type="password" id="pwNew" autocomplete="new-password" minlength="8" required placeholder="mindestens 8 Zeichen">
+      <label for="pwNew2">Wiederholen</label>
+      <input type="password" id="pwNew2" autocomplete="new-password" minlength="8" required>
+      <span></span>
+      <button type="submit">Passwort ändern</button>
+    </form>
+    <div id="pwMsg" style="margin-top:8px"></div>
+  </section>
+</main>
+<script src="/live.js"></script>
+<script>
+(function () {
+  'use strict';
+  var el = CS.el;
+  document.querySelectorAll('.srvUrl').forEach(function (e) { e.textContent = location.origin; });
+  document.getElementById('installCmd').textContent =
+    'curl -fsSL ' + location.origin + '/courtspot/install.sh | bash';
+
+  function fmt(iso) {
+    return iso ? new Date(iso).toLocaleString('de-DE') : '–';
+  }
+
+  function link(href, text) {
+    var li = el('li');
+    var a = el('a', null, location.origin + href);
+    a.href = href;
+    a.target = '_blank';
+    li.appendChild(a);
+    if (text) li.appendChild(document.createTextNode(' – ' + text));
+    return li;
+  }
+
+  var shownCourts = null;
+  function showState(state) {
+    var s = (state && state.source) || {};
+    var st = document.getElementById('srcState');
+    st.textContent = s.connected ? 'verbunden' + (s.from ? ' (' + s.from + ')' : '') : (s.lastPushAt ? 'nicht verbunden – zuletzt ' + fmt(s.lastPushAt) : 'noch nie verbunden');
+    st.className = s.connected ? 'ok' : 'bad';
+    var on = document.getElementById('srcOn');
+    on.textContent = !s.lastPushAt ? '–' : (s.off ? 'ausgeschaltet – es werden keine Spieldaten übertragen' : 'eingeschaltet');
+    on.className = !s.lastPushAt ? '' : (s.off ? 'bad' : 'ok');
+    var m = state && state.match;
+    document.getElementById('mName').textContent = m && m.ready ? m.home + ' – ' + m.away + '  (' + state.total.home + ':' + state.total.away + ')' : '–';
+    var games = (state && state.games) || [];
+    document.getElementById('gameCount').textContent = games.length
+      ? games.length + ', davon ' + games.filter(function (g) { return g.winner; }).length + ' beendet, ' +
+        games.filter(function (g) { return g.status === 'live'; }).length + ' laufend'
+      : '–';
+    document.getElementById('lastPush').textContent = fmt(s.lastPushAt);
+    document.getElementById('lastChange').textContent = fmt(s.lastChangeAt);
+    var ag = document.getElementById('agentState');
+    ag.textContent = s.agent ? 'Version ' + (s.agent.version || '?') + (s.agent.db ? ', Datenbank „' + s.agent.db + '“' : '')
+      : (s.lastPushAt ? 'ältere Version – bitte mit dem Befehl unten aktualisieren' : '–');
+
+    var courts = (state && state.courts) || [];
+    var key = courts.map(function (c) { return c.court; }).join(',');
+    if (key === shownCourts) return;
+    shownCourts = key;
+    var nums = courts.length ? courts.map(function (c) { return c.court; }) : [1, 2];
+    var ul = document.getElementById('links');
+    ul.replaceChildren();
+    ul.appendChild(link('/', 'Liveticker für Zuschauer: alle Spiele, Gesamtstand, laufende Courts'));
+    ul.appendChild(link('/courts', 'Overlay: beide Courts, Court 1 links, Court 2 rechts'));
+    ul.appendChild(link('/courts?total=1', 'Overlay: beide Courts mit Gesamtstand in der Mitte'));
+    nums.forEach(function (n) { ul.appendChild(link('/court/' + n, 'Overlay: nur Court ' + n)); });
+  }
+  CS.connect(showState, function (a) {
+    document.getElementById('lastPush').textContent = fmt(a.source && a.source.lastPushAt);
+  });
+
+  // ---- Erscheinungsbild
+  var bTitle = document.getElementById('bTitle');
+  var bSubtitle = document.getElementById('bSubtitle');
+  var bColor = document.getElementById('bColor');
+  var bHex = document.getElementById('bHex');
+  var bLink = document.getElementById('bLink');
+  var accent = '#1f5f99';
+  var brand = null;
+  var design = 'standard';
+
+  // Zeigt an, ob es Änderungen gibt, die noch nicht gespeichert sind
+  function dirty() {
+    if (!brand) return;
+    var c = brand.custom;
+    var changed = bTitle.value.trim() !== (c.title || '') ||
+      bSubtitle.value.trim() !== (c.subtitle || '') ||
+      bLink.value.trim() !== (c.link || '') ||
+      design !== brand.design ||
+      accent !== brand.accent;
+    document.getElementById('bDirty').hidden = !changed;
+  }
+  document.getElementById('brand').addEventListener('input', function () { setTimeout(dirty); });
+  document.getElementById('brand').addEventListener('change', function () { setTimeout(dirty); });
+  document.getElementById('brand').addEventListener('click', function () { setTimeout(dirty); });
+
+  function validHex(v) { return /^#[0-9a-f]{6}$/i.test(v); }
+
+  function contrast(hex) {
+    var c = [1, 3, 5].map(function (i) { return parseInt(hex.slice(i, i + 2), 16) / 255; })
+      .map(function (v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 1.05 / (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] + 0.05);
+  }
+
+  function darker(hex) {
+    return '#' + [1, 3, 5].map(function (i) {
+      return Math.round(parseInt(hex.slice(i, i + 2), 16) * 0.7).toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  function setAccent(v) {
+    if (!validHex(v)) return;
+    accent = v.toLowerCase();
+    bColor.value = accent;
+    if (document.activeElement !== bHex) bHex.value = accent;
+    document.querySelectorAll('.swatch').forEach(function (s) {
+      s.classList.toggle('on', s.dataset.color === accent);
+    });
+    preview();
+  }
+
+  function designOf(id) {
+    return ((brand && brand.designs) || []).filter(function (d) { return d.id === id; })[0] || null;
+  }
+
+  // Logo für Vorschau: hochgeladenes Logo vor Design-Logo vor Federball
+  function previewLogo() {
+    if (brand && brand.logoUploaded) return brand.logoUrl;
+    var d = designOf(design);
+    return (d && d.logoUrl) || '/shuttle.svg';
+  }
+
+  function preview() {
+    var d = designOf(design) || (brand && brand.defaults) || {};
+    bTitle.placeholder = d.title || '';
+    bSubtitle.placeholder = d.subtitle || '';
+    document.getElementById('pvTitle').textContent = bTitle.value.trim() || d.title || '';
+    document.getElementById('pvSubtitle').textContent = bSubtitle.value.trim() || d.subtitle || '';
+    document.getElementById('pvLogo').src = previewLogo();
+    document.getElementById('logoImg').src = previewLogo();
+    document.querySelectorAll('.design').forEach(function (b) { b.classList.toggle('on', b.dataset.id === design); });
+    var pv = document.getElementById('preview');
+    pv.style.background = accent;
+    document.querySelector('.pv-brand').style.background = accent;
+    document.getElementById('pvHead').style.background = darker(accent);
+    document.querySelectorAll('.pv-pts').forEach(function (b) { b.style.color = accent; });
+    document.getElementById('contrastWarn').hidden = contrast(accent) >= 3;
+    document.getElementById('logoBox').style.background = accent;
+  }
+
+  // Design wählen: Titel/Untertitel/Farbe kommen dann aus dem Design
+  function chooseDesign(id) {
+    design = id;
+    var d = designOf(id);
+    bTitle.value = '';
+    bSubtitle.value = '';
+    if (d) setAccent(d.accent);
+    preview();
+    setTimeout(dirty);
+  }
+
+  function fill(b) {
+    brand = b;
+    design = b.design;
+    var box = document.getElementById('designs');
+    box.replaceChildren();
+    (b.designs || []).forEach(function (d) {
+      var btn = el('button', 'design');
+      btn.type = 'button';
+      btn.dataset.id = d.id;
+      var lg = el('span', 'dlogo');
+      lg.style.background = d.accent;
+      var img = el('img');
+      img.src = d.logoUrl || '/shuttle.svg';
+      img.alt = '';
+      lg.appendChild(img);
+      btn.appendChild(lg);
+      btn.appendChild(el('span', null, d.name));
+      btn.addEventListener('click', function () { chooseDesign(d.id); });
+      box.appendChild(btn);
+    });
+    document.getElementById('designBox').hidden = (b.designs || []).length < 2;
+    bTitle.value = b.custom.title || '';
+    bSubtitle.value = b.custom.subtitle || '';
+    bLink.value = b.custom.link || '';
+    setTimeout(dirty);
+    var sw = document.getElementById('swatches');
+    sw.replaceChildren();
+    b.presets.forEach(function (p) {
+      var btn = el('button', 'swatch');
+      btn.type = 'button';
+      btn.title = p.name;
+      btn.setAttribute('aria-label', p.name);
+      btn.dataset.color = p.color;
+      btn.style.background = p.color;
+      btn.addEventListener('click', function () { setAccent(p.color); });
+      sw.appendChild(btn);
+    });
+    document.getElementById('logoRemove').hidden = !b.logoUploaded;
+    setAccent(b.accent);
+  }
+
+  fetch('/api/brand', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(fill);
+  CS.onBrand(function (b) { if (!document.getElementById('brand').contains(document.activeElement)) fill(b); });
+
+  bColor.addEventListener('input', function () { setAccent(bColor.value); });
+  bHex.addEventListener('input', function () {
+    var v = bHex.value.trim();
+    if (v && v[0] !== '#') v = '#' + v;
+    setAccent(v);
+  });
+  bHex.addEventListener('blur', function () { bHex.value = accent; });
+  bTitle.addEventListener('input', preview);
+  bSubtitle.addEventListener('input', preview);
+
+  // POST an die Admin-API; abgelaufene Anmeldung → zurück zur Login-Seite
+  function post(url, payload) {
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload || {}),
+    }).then(function (r) {
+      return r.json().catch(function () {
+        // keine JSON-Antwort: kommt meist von einem Reverse-Proxy davor
+        return { error: r.status === 413
+          ? 'Upload zu groß für den Reverse-Proxy (nginx: client_max_body_size erhöhen, siehe README).'
+          : 'Fehler ' + r.status + ' beim Speichern.' };
+      }).then(function (d) {
+        if (r.status === 401 && d.login) { location.reload(); return new Promise(function () {}); }
+        return { ok: r.ok, d: d };
+      });
+    });
+  }
+
+  function saveBrand(payload, url, okText) {
+    var msg = document.getElementById('brandMsg');
+    msg.textContent = 'Speichere …';
+    msg.className = 'muted';
+    post(url || '/api/brand', payload).then(function (x) {
+      if (x.ok) { fill(x.d); msg.textContent = okText || 'Gespeichert.'; msg.className = 'ok'; }
+      else { msg.textContent = x.d.error || 'Fehler'; msg.className = 'bad'; }
+    }).catch(function () {
+      msg.textContent = 'Fehler beim Senden.';
+      msg.className = 'bad';
+    });
+  }
+
+  document.getElementById('brand').addEventListener('submit', function (e) {
+    e.preventDefault();
+    // Farbe nur speichern, wenn sie vom gewählten Design abweicht
+    var d = designOf(design);
+    saveBrand({
+      design: design, title: bTitle.value, subtitle: bSubtitle.value,
+      accent: d && d.accent === accent ? '' : accent,
+      link: bLink.value,
+    });
+  });
+  var logoFile = document.getElementById('logoFile');
+  document.getElementById('logoPick').addEventListener('click', function () { logoFile.click(); });
+  // Bilder vor dem Hochladen auf Logo-Größe bringen (max. 800 px): das Logo lädt jeder
+  // Zuschauer, und Reverse-Proxies lassen große Uploads oft nicht durch. SVG bleibt.
+  var MAX_LOGO = 10 * 1024 * 1024;
+  var MAX_PX = 800;
+
+  function prepareLogo(file, cb) {
+    var reader = new FileReader();
+    reader.onerror = function () { cb(new Error('Datei konnte nicht gelesen werden.')); };
+    reader.onload = function () {
+      var dataUrl = reader.result;
+      if (file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)) return cb(null, dataUrl);
+      var img = new Image();
+      img.onerror = function () { cb(new Error('Das ist kein Bild, das der Browser lesen kann (PNG, JPG, WebP oder SVG).')); };
+      img.onload = function () {
+        var scale = Math.min(1, MAX_PX / Math.max(img.naturalWidth, img.naturalHeight));
+        if (scale === 1 && file.size <= 300 * 1024) return cb(null, dataUrl);
+        var c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * scale));
+        c.height = Math.max(1, Math.round(img.naturalHeight * scale));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        cb(null, c.toDataURL('image/webp', 0.92));
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  logoFile.addEventListener('change', function () {
+    var f = logoFile.files[0];
+    logoFile.value = '';
+    if (!f) return;
+    var msg = document.getElementById('brandMsg');
+    if (f.size > MAX_LOGO) { msg.textContent = 'Logo ist zu groß (max. 10 MB).'; msg.className = 'bad'; return; }
+    msg.textContent = 'Lade hoch …';
+    msg.className = 'muted';
+    prepareLogo(f, function (err, data) {
+      if (err) { msg.textContent = err.message; msg.className = 'bad'; return; }
+      saveBrand({ data: data }, '/api/logo', 'Logo gespeichert.');
+    });
+  });
+  document.getElementById('logoRemove').addEventListener('click', function () {
+    if (confirm('Logo entfernen?')) saveBrand({ remove: true }, '/api/logo', 'Logo entfernt.');
+  });
+
+  document.getElementById('bDefault').addEventListener('click', function () {
+    if (confirm('Design, Titel, Untertitel, Farbe und Link auf die Standardwerte zurücksetzen?')) saveBrand({ reset: true });
+  });
+
+  // ---- Anzeige leeren
+  document.getElementById('reset').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('resetMsg');
+    if (!confirm('Angezeigten Stand jetzt leeren?')) return;
+    post('/api/reset').then(function (x) {
+      msg.textContent = x.ok ? 'Anzeige geleert.' : (x.d.error || 'Fehler');
+      msg.className = x.ok ? 'ok' : 'bad';
+    }).catch(function () {
+      msg.textContent = 'Fehler beim Senden.';
+      msg.className = 'bad';
+    });
+  });
+
+  // ---- Anmeldung: Abmelden, Standardpasswort-Hinweis, Ticker-Passwort, Passwort ändern
+  var adminInfo = {};
+  function loadAdmin() {
+    fetch('/api/admin', { cache: 'no-store', credentials: 'same-origin' }).then(function (r) {
+      if (r.status === 401) { location.reload(); return null; }
+      return r.json();
+    }).then(function (d) {
+      if (!d) return;
+      adminInfo = d;
+      document.getElementById('defaultPwAlert').hidden = !d.defaultPassword;
+      document.getElementById('pwEnv').hidden = !d.passwordFromEnv;
+      document.getElementById('pwForm').hidden = !!d.passwordFromEnv;
+      showTickerPw(d);
+    });
+  }
+
+  function showTickerPw(d) {
+    var src = document.getElementById('tpwSource');
+    src.textContent = d.tickerPasswordSource === 'admin' ? 'Zurzeit gilt das hier im Admin-Panel gesetzte Passwort.'
+      : d.tickerPasswordSource === 'env' ? 'Zurzeit gilt TICKER_PASSWORD aus der Konfiguration.'
+      : 'Noch kein Passwort gesetzt – CourtSpot kann nichts senden.';
+    document.getElementById('tpwReset').hidden = d.tickerPasswordSource !== 'admin';
+    var shown = document.getElementById('tickerPw');
+    if (!shown.classList.contains('secret')) shown.textContent = d.tickerPassword || '(nicht gesetzt)';
+  }
+  function saveTickerPw(pw) {
+    var msg = document.getElementById('tpwMsg');
+    post('/api/ticker-password', { password: pw }).then(function (x) {
+      if (!x.ok) { msg.textContent = x.d.error || 'Fehler'; msg.className = 'bad'; return; }
+      adminInfo.tickerPassword = x.d.tickerPassword;
+      adminInfo.tickerPasswordSource = x.d.tickerPasswordSource;
+      showTickerPw(adminInfo);
+      document.getElementById('tpwInput').value = '';
+      msg.textContent = 'Gespeichert. Jetzt in CourtSpot eintragen: ' + x.d.tickerPassword;
+      msg.className = 'ok';
+    }).catch(function () { msg.textContent = 'Fehler beim Senden.'; msg.className = 'bad'; });
+  }
+  document.getElementById('tpwForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!confirm('Passwort ändern? CourtSpot kann danach erst wieder senden, wenn das neue Passwort dort eingetragen ist.')) return;
+    saveTickerPw(document.getElementById('tpwInput').value.trim());
+  });
+  document.getElementById('tpwGen').addEventListener('click', function () {
+    var a = new Uint8Array(12);
+    crypto.getRandomValues(a);
+    document.getElementById('tpwInput').value = Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  });
+  document.getElementById('tpwReset').addEventListener('click', function () {
+    if (confirm('Wieder TICKER_PASSWORD aus der Konfiguration verwenden?')) saveTickerPw('');
+  });
+  loadAdmin();
+
+  document.getElementById('logout').addEventListener('click', function () {
+    post('/api/logout').then(function () { location.reload(); });
+  });
+  document.getElementById('toPw').addEventListener('click', function () {
+    document.getElementById('pwSection').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('pwCur').focus({ preventScroll: true });
+  });
+  document.getElementById('tickerPw').addEventListener('click', function () {
+    this.textContent = adminInfo.tickerPassword || '(nicht gesetzt)';
+    this.classList.remove('secret');
+  });
+
+  // ---- Update aus dem Admin-Panel (Installation per install.sh, z. B. Proxmox-Container)
+  var upd = {
+    installed: document.getElementById('updInstalled'),
+    latest: document.getElementById('updLatest'),
+    changes: document.getElementById('updChanges'),
+    text: document.getElementById('updText'),
+    actions: document.getElementById('updActions'),
+    start: document.getElementById('updStart'),
+    check: document.getElementById('updCheck'),
+    msg: document.getElementById('updMsg'),
+    log: document.getElementById('updLog'),
+  };
+  var CONSOLE_CMD = 'bash /opt/courtspotlive/deploy/update.sh';
+  function ver(v) {
+    return v && v.commit ? v.commit.slice(0, 7) + (v.date ? ' vom ' + fmt(v.date) : '') : 'unbekannt';
+  }
+  function updMsg(text, cls) { upd.msg.textContent = text; upd.msg.className = cls || ''; }
+
+  function showUpdate(d) {
+    upd.installed.textContent = ver(d.installed);
+    upd.changes.replaceChildren();
+    upd.start.hidden = true;
+    upd.actions.hidden = d.mode === 'docker' || d.mode === 'none';
+    document.getElementById('updVersions').hidden = upd.actions.hidden;
+    var l = d.latest;
+    if (d.error) upd.latest.textContent = 'nicht abrufbar (' + d.error + ')';
+    else if (l) {
+      upd.latest.textContent = ver(l) + (l.behind === 0 ? ' – aktuell ✓' : '');
+      upd.latest.className = l.behind === 0 ? 'ok' : '';
+      if (l.behind) {
+        upd.changes.appendChild(el('b', null, l.behind === 1 ? '1 Änderung seit der installierten Version:' : l.behind + ' Änderungen seit der installierten Version:'));
+        var ul = el('ul');
+        l.changes.slice(0, 12).forEach(function (c) {
+          var li = el('li', null, c.message + ' ');
+          if (c.date) li.appendChild(el('span', null, new Date(c.date).toLocaleDateString('de-DE')));
+          ul.appendChild(li);
+        });
+        if (l.changes.length > 12) ul.appendChild(el('li', 'muted', '…'));
+        upd.changes.appendChild(ul);
+      }
+    }
+    var outdated = l && l.behind !== 0;
+    if (d.mode === 'systemd') {
+      upd.start.hidden = !outdated;
+      upd.text.textContent = 'Das Update holt den neuesten Stand von GitHub und startet den Liveticker neu (etwa eine Minute ' +
+        'nicht erreichbar, CourtSpot sendet danach von selbst weiter). Einstellungen, Logo und Passwörter bleiben erhalten. ' +
+        'Die CourtSpot-Erweiterung in der Halle wird separat aktualisiert (Befehl oben unter „Einrichtung in CourtSpot“).';
+    } else if (d.mode === 'console') {
+      upd.text.replaceChildren(document.createTextNode('Der Update-Knopf wird beim nächsten Update eingerichtet. Dafür einmalig im ' +
+        'Container als root ausführen (oder vom Proxmox-Host: pct exec <CTID> -- …):'), el('pre', 'cmd', CONSOLE_CMD));
+    } else if (d.mode === 'docker') {
+      upd.text.textContent = 'Der Liveticker läuft in einem Docker-Container. Updates kommen dort über ein neues Deployment.';
+    } else {
+      upd.text.textContent = 'Diese Installation wurde nicht mit dem Installationsskript eingerichtet – bitte von Hand aktualisieren (git pull, Neustart).';
+    }
+  }
+
+  function loadUpdate(check) {
+    fetch('/api/app-update' + (check ? '?check=' + check : ''), { cache: 'no-store', credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.running) return follow();
+        showUpdate(d);
+      })
+      .catch(function () { upd.latest.textContent = 'nicht abrufbar'; });
+  }
+
+  // Fortschritt verfolgen: Protokoll zeigen, Neustart abwarten, dann Seite neu laden
+  var following = false;
+  function follow() {
+    if (following) return;
+    following = true;
+    upd.start.disabled = true;
+    upd.check.disabled = true;
+    upd.log.hidden = false;
+    updMsg('Update läuft …', 'muted');
+    var seenDown = false;
+    (function poll() {
+      fetch('/api/app-update', { cache: 'no-store', credentials: 'same-origin' })
+        .then(function (r) {
+          if (r.status === 401) { location.reload(); return new Promise(function () {}); }
+          return r.json();
+        })
+        .then(function (d) {
+          upd.log.textContent = d.log || '';
+          upd.log.scrollTop = upd.log.scrollHeight;
+          var res = /^UPDATE_RESULT=(\S+)/m.exec(d.log || '');
+          if (!d.running && res) {
+            if (res[1] === 'success') {
+              updMsg('Update abgeschlossen – Seite wird neu geladen …', 'ok');
+              try { sessionStorage.setItem('updDone', '1'); } catch (e) { /* egal */ }
+              setTimeout(function () { location.reload(); }, 1500);
+            } else {
+              updMsg('Update fehlgeschlagen (' + res[1] + ') – siehe Protokoll. Der Liveticker läuft mit dem bisherigen Stand weiter.', 'bad');
+              following = false;
+              upd.start.disabled = false;
+              upd.check.disabled = false;
+            }
+            return;
+          }
+          updMsg(seenDown ? 'Liveticker startet neu …' : 'Update läuft …', 'muted');
+          setTimeout(poll, 1500);
+        })
+        .catch(function () {
+          seenDown = true;   // Dienst startet gerade neu
+          updMsg('Liveticker startet neu …', 'muted');
+          setTimeout(poll, 1500);
+        });
+    })();
+  }
+
+  upd.start.addEventListener('click', function () {
+    if (!confirm('Jetzt aktualisieren? Der Liveticker ist dabei etwa eine Minute nicht erreichbar.')) return;
+    post('/api/app-update', {}).then(function (x) {
+      if (!x.ok) return updMsg(x.d.error || 'Fehler', 'bad');
+      upd.log.textContent = '';
+      follow();
+    }).catch(function () { updMsg('Fehler beim Senden.', 'bad'); });
+  });
+  upd.check.addEventListener('click', function () { upd.latest.textContent = 'wird geprüft …'; loadUpdate('force'); });
+  try {
+    if (sessionStorage.getItem('updDone')) {
+      sessionStorage.removeItem('updDone');
+      updMsg('Update abgeschlossen ✓', 'ok');
+    }
+  } catch (e) { /* egal */ }
+  loadUpdate('1');
+
+  document.getElementById('pwForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = document.getElementById('pwMsg');
+    var next = document.getElementById('pwNew').value;
+    if (next !== document.getElementById('pwNew2').value) {
+      msg.textContent = 'Die beiden neuen Passwörter stimmen nicht überein.';
+      msg.className = 'bad';
+      return;
+    }
+    post('/api/admin-password', { current: document.getElementById('pwCur').value, next: next }).then(function (x) {
+      if (x.ok) {
+        msg.textContent = 'Passwort geändert. Andere Anmeldungen wurden beendet.';
+        msg.className = 'ok';
+        document.getElementById('pwForm').reset();
+        loadAdmin();
+      } else {
+        msg.textContent = x.d.error || 'Fehler';
+        msg.className = 'bad';
+      }
+    }).catch(function () {
+      msg.textContent = 'Fehler beim Senden.';
+      msg.className = 'bad';
+    });
+  });
+})();
+</script>
+</body>
+</html>

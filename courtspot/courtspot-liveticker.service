@@ -1,0 +1,17 @@
+[Unit]
+Description=CourtSpot Liveticker – Push-Dienst (sendet den Spielstand an den Liveticker)
+After=network-online.target mariadb.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /opt/courtspot-liveticker/push.php
+Restart=always
+RestartSec=5
+User=www-data
+Group=www-data
+StateDirectory=courtspot-liveticker
+StateDirectoryMode=0750
+
+[Install]
+WantedBy=multi-user.target

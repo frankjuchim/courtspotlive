@@ -1,0 +1,20 @@
+[Unit]
+Description=CourtSpot Liveticker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=courtspotlive
+Group=courtspotlive
+WorkingDirectory=/opt/courtspotlive
+EnvironmentFile=/etc/courtspotlive.env
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+# Port 80 ohne root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

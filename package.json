@@ -1,0 +1,14 @@
+{
+  "name": "courtspotlive",
+  "version": "1.0.0",
+  "description": "Öffentlicher Liveticker und Stream-Overlays für CourtSpot (Badminton-Mannschaftswettkampf), Installation auf Proxmox",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

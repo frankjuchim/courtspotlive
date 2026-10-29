@@ -1,0 +1,13 @@
+[Unit]
+Description=CourtSpot Liveticker – Update aus dem Admin-Panel
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/rm -f /var/lib/courtspotlive/update.request
+ExecStartPre=/bin/sh -c 'echo "UPDATE_STARTED $$(date -Is)" > /var/lib/courtspotlive/update.log'
+ExecStart=/bin/bash /opt/courtspotlive/deploy/update.sh
+StandardOutput=append:/var/lib/courtspotlive/update.log
+StandardError=append:/var/lib/courtspotlive/update.log
+ExecStopPost=/bin/sh -c 'echo "UPDATE_RESULT=$$SERVICE_RESULT $$(date -Is)" >> /var/lib/courtspotlive/update.log'
+TimeoutStartSec=15min

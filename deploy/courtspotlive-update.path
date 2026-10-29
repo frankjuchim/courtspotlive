@@ -1,0 +1,10 @@
+[Unit]
+Description=CourtSpot Liveticker – wartet auf Update-Anfrage aus dem Admin-Panel
+
+[Path]
+# legt der Liveticker an, wenn im Admin-Panel „Jetzt aktualisieren“ gedrückt wird
+PathExists=/var/lib/courtspotlive/update.request
+Unit=courtspotlive-update.service
+
+[Install]
+WantedBy=multi-user.target

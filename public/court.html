@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Court Overlay</title>
+<link rel="stylesheet" href="/overlay.css">
+<link rel="stylesheet" href="/config.css">
+<meta name="brand-logo" content="{{LOGO}}">
+</head>
+<body>
+<div class="stage" id="stage"></div>
+<script src="/live.js"></script>
+<script src="/overlay.js"></script>
+<script>
+  // /court/1 oder /court/2 (alternativ ?court=1)
+  CS.applyCommonParams();
+  var p = CS.params;
+  var nr = parseInt(p.get('court') || location.pathname.split('/').pop(), 10) || 1;
+  document.title = 'Court ' + nr + ' – Overlay';
+  var opts = { short: p.get('names') !== 'full', sets: p.get('sets') !== '0' };
+  var stage = document.getElementById('stage');
+
+  CS.connect(function (state) {
+    stage.replaceChildren();
+    if (p.get('total') === '1') stage.appendChild(Overlay.totalBar(state));
+    var board = Overlay.courtBoard(state, nr, opts);
+    if (board.classList.contains('idle') && p.get('showIdle') !== '1') return;
+    stage.appendChild(board);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+/* Stream-Overlays: transparenter Hintergrund, gut lesbar über Video */
+:root {
+  /* Farben kommen aus /config.css (Admin-Panel bzw. ACCENT) */
+  --scale: 1;
+  --club: #1f5f99;
+  --club-dark: #16436b;
+  --panel: rgba(31, 95, 153, 0.94);
+  --panel-2: rgba(22, 67, 107, 0.97);
+  --text: #fff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --accent: #fff;
+  --live: #fff;
+  color-scheme: normal;
+}
+
+/* Hintergrund im Stream immer leer/transparent – nur die Anzeigen sind sichtbar */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  overflow: hidden;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+}
+
+.stage {
+  display: inline-flex;
+  flex-direction: column;
+  gap: calc(10px * var(--scale));
+  padding: calc(16px * var(--scale));
+  font-size: calc(22px * var(--scale));
+}
+.stage-boards { display: flex; flex-direction: column; gap: inherit; }
+.board.hidden { visibility: hidden; }
+
+/* Nebeneinander über die volle Breite: Court 1 links, Court 2 rechts */
+.stage.split {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 100vw;
+}
+.stage.split.bottom { align-items: flex-end; min-height: 100vh; }
+.stage-mid { flex: 1; display: flex; justify-content: center; min-width: 0; }
+
+.stage.split .board, .stage.split .totalbar { flex: none; }
+
+.board {
+  /* feste Breite – ändert sich weder mit Namen noch mit der Zahl der Sätze */
+  width: calc(600px * var(--scale));
+  box-sizing: border-box;
+  background: var(--panel);
+  border-radius: calc(8px * var(--scale));
+  overflow: hidden;
+  transition: opacity 0.4s;
+}
+.board.paused { opacity: 0.85; }
+
+.board-head, .board-idle {
+  display: flex;
+  white-space: nowrap;
+  overflow: hidden;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.25em 0.6em;
+  background: var(--panel-2);
+  font-size: 0.68em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.board-idle { padding: 0.6em; font-size: 0.8em; color: var(--muted); }
+.tag { color: #fff; font-weight: 800; }
+.disc { font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* feste Breite: „Live“ und „Beendet“ sind gleich breit, nichts verschiebt sich */
+.state { flex: none; margin-left: auto; width: 6.4em; box-sizing: border-box; text-align: center; font-weight: 700; padding: 0.1em 0; border-radius: 3px; white-space: nowrap; }
+.state.live { background: #fff; color: var(--club); }
+.state.live::before { content: "● "; animation: blink 1.4s infinite; }
+.state.done { background: rgba(255, 255, 255, 0.2); }
+@keyframes blink { 50% { opacity: 0.2; } }
+
+.row {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+.row + .row { border-top-color: rgba(255, 255, 255, 0.18); }
+.row.winner .names { font-weight: 700; }
+.row.winner .names::after { content: " ✓"; }
+
+.serve { width: 1.2em; flex: none; position: relative; }
+.serve.on::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 0.42em; height: 0.42em;
+  margin: -0.21em 0 0 -0.1em;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.team {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.25em 0.6em 0.25em 0;
+  min-width: 0;
+}
+.club { font-size: 0.6em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.names { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.scores { flex: none; display: flex; justify-content: flex-end; align-items: stretch; }
+.set, .points {
+  flex: none;
+  width: 1.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.set { width: 2.2em; color: var(--muted); font-size: 0.85em; }
+.set.won { color: var(--text); font-weight: 700; }
+.points { width: 2.3em; background: #fff; color: var(--club); font-weight: 800; font-size: 1.15em; }
+
+.totalbar {
+  display: flex;
+  align-items: stretch;
+  /* feste Breite, Vereinsnamen jeweils mittig in ihrer Hälfte */
+  width: calc(640px * var(--scale));
+  box-sizing: border-box;
+  position: relative;
+  background: var(--panel);
+  border-radius: calc(8px * var(--scale));
+  overflow: hidden;
+  font-weight: 700;
+}
+.totalbar:empty { display: none; }
+.totalbar .club {
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: center;
+  color: var(--text);
+  font-size: 0.8em;
+  padding: 0.45em 0.6em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Logo liegt über dem Rand, beide Hälften gleich breit → Stand exakt mittig */
+.totalbar .logo { position: absolute; left: 0.4em; top: 50%; transform: translateY(-50%); height: 2.1em; }
+.totalbar .club.home, .totalbar .club.away { padding-left: 3.4em; padding-right: 0.6em; }
+.totalbar .club.away { padding-left: 0.6em; padding-right: 3.4em; }
+.totalbar .score {
+  background: #fff;
+  color: var(--club);
+  padding: 0.2em 0;
+  flex: none;
+  width: 4.2em;
+  justify-content: center;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 0.15em;
+  font-variant-numeric: tabular-nums;
+}
