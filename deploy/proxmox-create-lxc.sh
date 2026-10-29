@@ -84,7 +84,9 @@ for i in $(seq 1 30); do
 done
 
 echo "==> Installiere den Liveticker im Container"
-pct exec "$CTID" -- bash -c "apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null && curl -fsSL '$INSTALL_URL' | bash"
+# Spracheinstellung des Hosts (z. B. en_US.UTF-8) gibt es in der frischen Vorlage nicht –
+# C.UTF-8 ist immer vorhanden und vermeidet die „Setting locale failed“-Warnungen
+pct exec "$CTID" -- env LANG=C.UTF-8 LC_ALL=C.UTF-8 bash -c "apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null && curl -fsSL '$INSTALL_URL' | bash"
 
 echo "==> Fertig. Container $CTID startet automatisch mit dem Host."
 echo "    Konsole des Containers im Web-UI:  Benutzer root, Passwort $ROOT_PASSWORD"

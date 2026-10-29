@@ -13,6 +13,8 @@ ENV_FILE=/etc/courtspotlive.env
 [ "$(id -u)" = 0 ] || { echo "Bitte als root ausführen." >&2; exit 1; }
 
 export DEBIAN_FRONTEND=noninteractive
+# Keine Locale-Warnungen, wenn die Sprache des Aufrufers im Container fehlt (z. B. per pct exec)
+export LANG=C.UTF-8 LC_ALL=C.UTF-8
 # Pakete nur installieren, wenn etwas fehlt (Updates bleiben so schnell und schlank)
 if ! command -v node >/dev/null || ! command -v git >/dev/null || ! command -v curl >/dev/null; then
   echo "==> Pakete installieren (nodejs, git)"
