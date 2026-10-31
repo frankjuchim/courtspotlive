@@ -13,7 +13,20 @@
 		+ '<input type="button" id="ltSchalter" value="..." style="font-size: large; min-width: 150px; margin: 4px 0; border-radius: 4px; border: 1px solid #555; cursor: pointer;"><br/>'
 		+ '<span id="ltStatus" style="font-size: small;"></span><br/>'
 		+ '<a id="ltLink" href="#" target="_blank" style="font-size: small; display: none;">Ticker öffnen</a> '
-		+ '<a id="ltEinst" href="#" style="font-size: small;">Einstellungen</a>'
+		+ '<a id="ltEinst" href="#" style="font-size: small;">Einstellungen</a><br/>'
+		+ '<span id="ltTermin" style="font-size: small;"></span> <a id="ltTerminLink" href="#" style="font-size: small;">ändern</a>'
+		+ '<div id="ltTerminForm" style="display: none; text-align: left; margin-top: 8px; padding: 8px; border: 1px solid #999; border-radius: 6px; background: #f6f6f6; font-size: small; max-width: 420px; white-space: normal;">'
+		+ '<div id="ltBegegnung" style="font-weight: bold; margin-bottom: 6px;"></div>'
+		+ '<label for="ltDatum" style="display: block;">Datum</label>'
+		+ '<input type="date" id="ltDatum" placeholder="TT.MM.JJJJ" style="' + feld + '">'
+		+ '<label for="ltZeit" style="display: block;">Uhrzeit (Spielbeginn)</label>'
+		+ '<input type="time" id="ltZeit" placeholder="HH:MM" style="' + feld + '">'
+		+ '<label for="ltOrt" style="display: block;">Ort / Halle</label>'
+		+ '<input type="text" id="ltOrt" maxlength="100" placeholder="optional" style="' + feld + '">'
+		+ '<input type="button" id="ltTerminSpeichern" value="Termin speichern" style="' + knopfStil + '">'
+		+ '<div id="ltTerminErgebnis" style="margin-top: 6px;"></div>'
+		+ '<div style="color: #666; margin-top: 6px;">Erscheint im Liveticker unter dem Spielstand. Wird beim Anlegen einer neuen Begegnung überschrieben.</div>'
+		+ '</div>'
 		+ '<div id="ltForm" style="display: none; text-align: left; margin-top: 8px; padding: 8px; border: 1px solid #999; border-radius: 6px; background: #f6f6f6; font-size: small; max-width: 420px; white-space: normal;">'
 		+ '<label for="ltUrl" style="display: block;">Liveticker-Adresse</label>'
 		+ '<input type="text" id="ltUrl" placeholder="z. B. https://live.meinverein.de" style="' + feld + '">'
@@ -32,6 +45,13 @@
 	var urlFeld = document.getElementById('ltUrl');
 	var pwFeld = document.getElementById('ltPw');
 	var ergebnis = document.getElementById('ltErgebnis');
+	var terminText = document.getElementById('ltTermin');
+	var terminForm = document.getElementById('ltTerminForm');
+	var datumFeld = document.getElementById('ltDatum');
+	var zeitFeld = document.getElementById('ltZeit');
+	var ortFeld = document.getElementById('ltOrt');
+	var terminErgebnis = document.getElementById('ltTerminErgebnis');
+	var terminBearbeitet = false;
 	var aktiv = null;
 	var erstesMal = true;
 	// Solange der Nutzer die Adresse bearbeitet, nicht mit dem gespeicherten Wert überschreiben
@@ -55,8 +75,46 @@
 			ziel.appendChild(kind);
 	}
 
+	// „TT.MM.JJJJ“ (Datenbank) ↔ „JJJJ-MM-TT“ (Datumsfeld); ältere Browser zeigen ein Textfeld
+	function fuersFeld(datum)
+	{
+		var m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(datum || '');
+		return m && datumFeld.type === 'date' ? m[3] + '-' + m[2] + '-' + m[1] : (datum || '');
+	}
+
+	function terminAnzeigen(b)
+	{
+		if (!b)
+		{
+			terminText.textContent = '';
+			document.getElementById('ltTerminLink').style.display = 'none';
+			return;
+		}
+		document.getElementById('ltTerminLink').style.display = '';
+		var t = [b.datum, b.startzeit ? b.startzeit + ' Uhr' : '', b.ort].filter(function (x) { return x; }).join(', ');
+		terminText.textContent = 'Termin: ' + (t || 'nicht eingetragen');
+		terminText.style.color = t ? '' : '#b36b00';
+		document.getElementById('ltBegegnung').textContent = b.heim && b.gast ? b.heim + ' – ' + b.gast : 'Noch keine Begegnung angelegt';
+		if (!terminBearbeitet)
+		{
+			datumFeld.value = fuersFeld(b.datum);
+			zeitFeld.value = b.startzeit || '';
+			ortFeld.value = b.ort || '';
+		}
+	}
+
 	function anzeigen(d)
 	{
+		if (d.installiert)
+			terminAnzeigen(d.begegnung);
+		if (d.terminGespeichert)
+		{
+			terminBearbeitet = false;
+			terminAnzeigen(d.begegnung);
+			setze(terminErgebnis, farbig('✓ Termin gespeichert', 'green'));
+		}
+		else if (d.fehler && terminForm.style.display !== 'none' && terminErgebnis.textContent === 'Speichere …')
+			setze(terminErgebnis, farbig(d.fehler, 'red'));
 		if (!d.installiert)
 		{
 			knopf.style.display = 'none';
@@ -173,6 +231,18 @@
 			setTimeout(laden, 2500);
 		}
 	}
+	document.getElementById('ltTerminLink').onclick = function (e)
+	{
+		e.preventDefault();
+		terminForm.style.display = terminForm.style.display === 'none' ? '' : 'none';
+	};
+	datumFeld.oninput = zeitFeld.oninput = ortFeld.oninput = function () { terminBearbeitet = true; };
+	document.getElementById('ltTerminSpeichern').onclick = function ()
+	{
+		terminErgebnis.textContent = 'Speichere …';
+		laden('termin', '&datum=' + encodeURIComponent(datumFeld.value) + '&startzeit=' + encodeURIComponent(zeitFeld.value)
+			+ '&ort=' + encodeURIComponent(ortFeld.value));
+	};
 	document.getElementById('ltSpeichern').onclick = function () { senden('speichern'); };
 	document.getElementById('ltTesten').onclick = function () { senden('testen'); };
 

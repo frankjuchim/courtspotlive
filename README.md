@@ -110,7 +110,9 @@ Bei **„3. Liveticker“** auf **„Liveticker einrichten“** bzw. **„Einste
    „Liveticker derzeit nicht aktiv“ und die Overlays bleiben leer – praktisch für Tests.
 
 Darunter steht der Status („Überträgt – zuletzt 14:03:12 Uhr“, „Dienst läuft nicht!“,
-„Ticker-Passwort falsch“ …) und ein Link zum Ticker. Am Spieltag wird wie gewohnt gearbeitet:
+„Ticker-Passwort falsch“ …) und ein Link zum Ticker. Unter **„Termin … ändern“** lassen sich
+Datum, Uhrzeit und Ort der Begegnung selbst eintragen (z. B. nach einem Import ohne Termin) –
+sie erscheinen im Ticker unter dem Spielstand. Am Spieltag wird wie gewohnt gearbeitet:
 Datenbank zurücksetzen, Begegnung anlegen (auch manuell), Aufstellung in bup, zählen.
 
 Gespeichert wird in `/var/lib/courtspot-liveticker/config.json` (nur für `www-data` lesbar).
@@ -125,8 +127,9 @@ Im Container prüfen: `journalctl -u courtspot-liveticker -f`,
 Unabhängig vom Liveticker: CourtSpots Import „Begegnung von turnier.de importieren“ bricht ab,
 wenn der Spieltermin einer Begegnung nicht genau „Wochentag Datum Uhrzeit“ lautet (verlegt,
 ohne Uhrzeit, noch offen) – Meldung nur „Ein Fehler ist aufgetreten“ bzw. `Cannot find starttime`.
-Dieser Befehl im CourtSpot-Container (als root) behebt das und lässt die Importseite künftig die
-eigentliche Fehlermeldung anzeigen:
+Dieser Befehl im CourtSpot-Container (als root) behebt das, übernimmt künftig Datum, Uhrzeit und
+Ort von turnier.de (soweit vorhanden) und lässt die Importseite die eigentliche Fehlermeldung
+anzeigen:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/frankjuchim/courtspotlive/main/courtspot/turnierde-fix.sh | bash

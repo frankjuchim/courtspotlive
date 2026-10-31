@@ -6,6 +6,8 @@
 #     „Cannot find starttime“ ab – CourtSpot verwendet den Termin beim Import ohnehin nicht.
 #  2. Die Importseite zeigt bei Fehlern die eigentliche Meldung statt nur
 #     „Ein Fehler ist aufgetreten“.
+#  3. Datum, Uhrzeit und Ort der Begegnung werden von turnier.de übernommen, soweit
+#     vorhanden (selbst eintragen/ändern: CourtSpot-Menü „3. Liveticker“ → Termin).
 #
 # Auf dem Rechner/Container, auf dem CourtSpot läuft, als root:
 #   curl -fsSL https://raw.githubusercontent.com/frankjuchim/courtspotlive/main/courtspot/turnierde-fix.sh | bash
@@ -59,6 +61,30 @@ echo "$DIRS" | while read -r CS; do
 			copy($f, $f . ".vor-fix");
 			file_put_contents($f, str_replace($alt, $neu, $s));
 			echo "   Import (Spieltermin): angepasst (Sicherung tde_import.php.vor-fix)\n";
+		}
+
+		// 3. Importseite: Datum, Uhrzeit und Ort von turnier.de übernehmen (waren auskommentiert)
+		$h = $cs . "/Update-Verzeichnis/html/spielerTurnierDeLaden.html";
+		if (is_file($h)) {
+			$s = file_get_contents($h);
+			$alt = "+\x27&Ort=\x27//+match[\x27event\x27][\x27location\x27]\n"
+				. "\t\t\t\t+\x27&Startzeit=\x27//+match[\x27event\x27][\x27starttime\x27]\n"
+				. "\t\t\t\t+\x27&Datum=\x27//+match[\x27event\x27][\x27date\x27]";
+			$alt = stripcslashes($alt);
+			// Apostrophe entfernen: dbVerwaltungEintrag.php setzt die Werte direkt ins SQL ein
+			$wert = function ($k) { return "encodeURIComponent(String(match[\x27event\x27][\x27" . $k . "\x27] || \x27\x27).replace(/\x27/g, \x27´\x27))"; };
+			$neu = stripcslashes("+\x27&Ort=\x27+" . $wert("location") . " // courtspotlive-termin\n"
+				. "\t\t\t\t+\x27&Startzeit=\x27+" . $wert("starttime") . "\n"
+				. "\t\t\t\t+\x27&Datum=\x27+" . $wert("date"));
+			if (strpos($s, "courtspotlive-termin") !== false) {
+				echo "   Importseite (Termin übernehmen): schon angepasst\n";
+			} elseif (substr_count($s, $alt) === 1) {
+				if (!is_file($h . ".vor-fix")) copy($h, $h . ".vor-fix");
+				file_put_contents($h, str_replace($alt, $neu, $s));
+				echo "   Importseite (Termin übernehmen): angepasst\n";
+			} else {
+				echo "   Importseite (Termin): unbekannte Fassung – nicht geändert\n";
+			}
 		}
 
 		// 2. Importseite: echte Fehlermeldung anzeigen

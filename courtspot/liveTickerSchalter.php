@@ -7,6 +7,8 @@
 //   POST aktion=speichern url, passwort   Einstellungen speichern und testen
 //                                     (leeres Passwort = bisheriges behalten)
 //   POST aktion=testen [url, passwort] Verbindung testen, ohne zu speichern
+//   POST aktion=termin datum, startzeit, ort  Termin der Begegnung (Tabelle Verwaltung)
+//                                     selbst eintragen, z. B. nach einem Import ohne Termin
 // Das Passwort wird nie an den Browser zurückgegeben.
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
@@ -41,6 +43,52 @@ function adresse($url)
 	if (!$teile || empty($teile['host']) || strlen($url) > 300)
 		return null;
 	return rtrim($url, '/');
+}
+
+// Begegnung aus der CourtSpot-Datenbank (dieselbe wie die übrigen CourtSpot-Seiten)
+function datenbank()
+{
+	include __DIR__.'/../../DB_connection.php';
+	mysqli_report(MYSQLI_REPORT_OFF);
+	$db = @mysqli_connect($DB_adress, $DB_name, $DB_pass, $CS_name, $DB_port);
+	if ($db)
+		mysqli_set_charset($db, 'utf8');
+	return $db ?: null;
+}
+
+function begegnung($db)
+{
+	$res = $db ? mysqli_query($db, 'SELECT Heim, Gast, Datum, Startzeit, Ort FROM Verwaltung WHERE ID = 1') : false;
+	$r = $res ? mysqli_fetch_assoc($res) : null;
+	if (!$r)
+		return null;
+	return array(
+		'heim' => trim($r['Heim']), 'gast' => trim($r['Gast']),
+		'datum' => trim($r['Datum']), 'startzeit' => trim($r['Startzeit']), 'ort' => trim($r['Ort']),
+	);
+}
+
+// Datum als TT.MM.JJJJ speichern (das Datumsfeld des Browsers liefert JJJJ-MM-TT)
+function datumPruefen($d)
+{
+	$d = trim($d);
+	if ($d === '')
+		return '';
+	if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $d, $m))
+		$d = $m[3].'.'.$m[2].'.'.$m[1];
+	if (!preg_match('/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/', $d, $m) || !checkdate($m[2], $m[1], $m[3]))
+		return null;
+	return sprintf('%02d.%02d.%04d', $m[1], $m[2], $m[3]);
+}
+
+function zeitPruefen($z)
+{
+	$z = trim($z);
+	if ($z === '')
+		return '';
+	if (!preg_match('/^(\d{1,2})[:.](\d{2})$/', $z, $m) || $m[1] > 23 || $m[2] > 59)
+		return null;
+	return sprintf('%02d:%02d', $m[1], $m[2]);
 }
 
 // Verbindung prüfen: GET <url>/api/ping mit dem Passwort
@@ -86,6 +134,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['aktion']))
 		$fehler = 'Einschalten nicht möglich (Rechte von '.$dir.' prüfen)';
 	elseif ($aktion == 'aus' && !file_exists($ausDatei) && !@touch($ausDatei))
 		$fehler = 'Ausschalten nicht möglich (Rechte von '.$dir.' prüfen)';
+	elseif ($aktion == 'termin')
+	{
+		$datum = datumPruefen(isset($_POST['datum']) ? $_POST['datum'] : '');
+		$zeit = zeitPruefen(isset($_POST['startzeit']) ? $_POST['startzeit'] : '');
+		$ort = isset($_POST['ort']) ? trim($_POST['ort']) : '';
+		if ($datum === null)
+			$fehler = 'Ungültiges Datum (TT.MM.JJJJ).';
+		elseif ($zeit === null)
+			$fehler = 'Ungültige Uhrzeit (HH:MM).';
+		elseif (strlen($ort) > 200)
+			$fehler = 'Ort ist zu lang.';
+		elseif (!($db = datenbank()))
+			$fehler = 'Keine Verbindung zur CourtSpot-Datenbank.';
+		else
+		{
+			// lfdnum+1: CourtSpot-Anzeigen und der Liveticker übernehmen die Änderung sofort
+			$stmt = mysqli_prepare($db, 'UPDATE Verwaltung SET Datum = ?, Startzeit = ?, Ort = ?, lfdnum = lfdnum + 1 WHERE ID = 1');
+			if (!$stmt || !mysqli_stmt_bind_param($stmt, 'sss', $datum, $zeit, $ort) || !mysqli_stmt_execute($stmt))
+				$fehler = 'Termin konnte nicht gespeichert werden: '.mysqli_error($db);
+			else
+				$terminGespeichert = true;
+		}
+	}
 	elseif ($aktion == 'speichern' || $aktion == 'testen')
 	{
 		$c = config();
@@ -122,6 +193,7 @@ $feld = function ($k) use ($status) { return isset($status[$k]) ? $status[$k] : 
 $ts = intval($feld('ts'));
 $quelle = $feld('quelle');
 $c = config();
+$db = isset($db) && $db ? $db : datenbank();
 $url = !empty($c['url']) ? $c['url'] : (string) $feld('url');
 
 echo json_encode(array(
@@ -137,6 +209,8 @@ echo json_encode(array(
 	'letzteUebertragung' => $feld('letzteUebertragung') ? date('H:i:s', $feld('letzteUebertragung')) : null,
 	'dienstFehler' => $feld('fehler'),
 	'test' => $test,
+	'begegnung' => begegnung($db),
+	'terminGespeichert' => !empty($terminGespeichert),
 	'fehler' => $fehler,
 ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 ?>
