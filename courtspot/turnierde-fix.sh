@@ -63,6 +63,19 @@ echo "$DIRS" | while read -r CS; do
 			echo "   Import (Spieltermin): angepasst (Sicherung tde_import.php.vor-fix)\n";
 		}
 
+		// 1b. Verlegte Spiele: Hinweis „(Verbandsansetzung war: …)“ mit dem alten Termin ignorieren
+		$s = file_get_contents($f);
+		$zeile = "\t\t\$termin = \\trim(\\preg_replace(\x27/\\s+/\x27, \x27 \x27, \\strip_tags(\$termin_m[1])));\n";
+		$extra = "\t\t\$termin = \\preg_replace(\x27/\\(\\s*Verbandsansetzung[^)]*\\)?/u\x27, \x27 \x27, \$termin);   // alter Termin bei verlegten Spielen\n";
+		if (strpos($s, "Verbandsansetzung") !== false) {
+			echo "   Import (verlegte Spiele): schon angepasst\n";
+		} elseif (substr_count($s, $zeile) === 1) {
+			file_put_contents($f, str_replace($zeile, $zeile . $extra, $s));
+			echo "   Import (verlegte Spiele): angepasst – alter Termin wird ignoriert\n";
+		} else {
+			echo "   Import (verlegte Spiele): unbekannte Fassung – nicht geändert\n";
+		}
+
 		// 3. Importseite: Datum, Uhrzeit und Ort von turnier.de übernehmen (waren auskommentiert)
 		$h = $cs . "/Update-Verzeichnis/html/spielerTurnierDeLaden.html";
 		if (is_file($h)) {
