@@ -102,7 +102,8 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; color: 
 .g-now { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .g-sets { display: flex; justify-content: center; gap: 0.7em; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .g-sets b { color: var(--text); font-weight: 800; }
-.g-sets.final { font-size: 1.05rem; color: var(--text); }
+/* beendete Spiele: Sätze untereinander */
+.g-sets.final { flex-direction: column; align-items: center; gap: 0.1em; font-size: 1.05rem; color: var(--text); }
 
 .foot { margin: 24px 0 8px; text-align: center; font-size: 0.85rem; }
 .conn.ok { color: var(--muted); }
