@@ -100,12 +100,26 @@
       names.forEach(function (n) { p.appendChild(el('span', 'g-player', n)); });
       body.appendChild(p);
     });
+    // Groß der Punktestand im laufenden Satz, darunter klein die fertigen Sätze
+    // (Zahl des Satzgewinners fett); beendete Spiele zeigen nur die Sätze
     var res = el('div', 'g-result');
-    var won = el('span', 'g-won', g.sets.length ? g.setsWon[0] + ':' + g.setsWon[1] : '–');
-    res.appendChild(won);
-    var sets = el('span', 'g-sets');
-    sets.textContent = g.sets.map(function (s) { return s.home + ':' + s.away; }).join('  ');
-    res.appendChild(sets);
+    var done = g.sets.slice();
+    var current = null;
+    if (!g.winner && done.length && !done[done.length - 1].winner) current = done.pop();
+    if (current) res.appendChild(el('span', 'g-now', current.home + ':' + current.away));
+    else if (g.status === 'live') res.appendChild(el('span', 'g-now', '0:0'));
+    else if (!done.length) res.appendChild(el('span', 'g-now', '–'));
+    if (done.length) {
+      var sets = el('span', 'g-sets' + (g.winner ? ' final' : ''));
+      done.forEach(function (s) {
+        var set = el('span', 'g-set');
+        set.appendChild(el(s.winner === 'home' ? 'b' : 'span', null, String(s.home)));
+        set.appendChild(document.createTextNode(':'));
+        set.appendChild(el(s.winner === 'away' ? 'b' : 'span', null, String(s.away)));
+        sets.appendChild(set);
+      });
+      res.appendChild(sets);
+    }
     body.insertBefore(res, body.lastChild);
     row.appendChild(body);
     return row;

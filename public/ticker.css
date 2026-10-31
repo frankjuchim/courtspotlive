@@ -99,8 +99,10 @@ h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; color: 
 .g-side.home { text-align: right; }
 .g-side.winner { background: var(--win-bg); font-weight: 700; }
 .g-result { text-align: center; display: flex; flex-direction: column; min-width: 90px; }
-.g-won { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.g-sets { font-size: 0.85rem; color: var(--muted); white-space: pre; font-variant-numeric: tabular-nums; }
+.g-now { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.g-sets { display: flex; justify-content: center; gap: 0.7em; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.g-sets b { color: var(--text); font-weight: 800; }
+.g-sets.final { font-size: 1.05rem; color: var(--text); }
 
 .foot { margin: 24px 0 8px; text-align: center; font-size: 0.85rem; }
 .conn.ok { color: var(--muted); }
