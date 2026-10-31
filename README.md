@@ -120,6 +120,20 @@ funktionieren weiter; im Menü gespeicherte Werte gehen vor.
 Im Container prüfen: `journalctl -u courtspot-liveticker -f`,
 `php /opt/courtspot-liveticker/push.php --dry-run` (zeigt die Daten, sendet nichts).
 
+### Begegnung von turnier.de importieren (Fix)
+
+Unabhängig vom Liveticker: CourtSpots Import „Begegnung von turnier.de importieren“ bricht ab,
+wenn der Spieltermin einer Begegnung nicht genau „Wochentag Datum Uhrzeit“ lautet (verlegt,
+ohne Uhrzeit, noch offen) – Meldung nur „Ein Fehler ist aufgetreten“ bzw. `Cannot find starttime`.
+Dieser Befehl im CourtSpot-Container (als root) behebt das und lässt die Importseite künftig die
+eigentliche Fehlermeldung anzeigen:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/frankjuchim/courtspotlive/main/courtspot/turnierde-fix.sh | bash
+```
+
+Nach „bup updaten“ im CourtSpot-Menü erneut ausführen (der bup-Ordner wird dabei ersetzt).
+
 ## Admin-Panel
 
 `http://<IP>/admin` ist durch ein **Admin-Passwort** geschützt.
