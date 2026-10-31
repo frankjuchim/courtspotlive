@@ -96,4 +96,5 @@ test('CourtSpot-Erweiterung wird mit der Adresse des Servers ausgeliefert', asyn
   assert.match(sh, new RegExp('SRC="\\$\\{SOURCE_URL:-http://127.0.0.1:' + PORT + '/courtspot\\}"'));
   assert.strictEqual((await fetch(BASE + '/courtspot/../server.js')).status, 404);
   assert.strictEqual((await fetch(BASE + '/courtspot/push.php')).status, 200);
+  assert.strictEqual((await fetch(BASE + '/courtspot/turnierde-fix.sh')).status, 200);
 });

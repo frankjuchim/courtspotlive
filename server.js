@@ -304,6 +304,7 @@ function serveDesignLogo(req, res, id) {
 // Dateien von hier lädt (passend zur Version des Tickers).
 const COURTSPOT_FILES = new Set([
   'install.sh', 'push.php', 'courtspot-liveticker.service', 'liveTickerSchalter.php', 'liveTickerSchalter.js',
+  'turnierde-fix.sh',
 ]);
 function serveCourtspotFile(req, res, name) {
   if (!COURTSPOT_FILES.has(name)) return send(res, 404, 'Not found', 'text/plain');

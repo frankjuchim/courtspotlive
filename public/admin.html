@@ -145,6 +145,17 @@
           der CourtSpot ihn erreicht.</span></li>
       <li><b>Einschalten</b> – im CourtSpot-Menü auf <b>AUS (einschalten)</b> klicken. Oben steht dann
         „CourtSpot: verbunden“.</li>
+      <li><b>Optional: Import „Begegnung von turnier.de importieren“ reparieren</b> – unabhängig vom Liveticker.
+        Ohne den Fix bricht CourtSpots Import bei verlegten Spielen (z. B. Heimrechttausch + Spiel verlegt),
+        Spielen ohne Uhrzeit oder mit offenem Termin ab („Ein Fehler ist aufgetreten“ bzw.
+        <code>Cannot find starttime</code>). Mit dem Fix übernimmt der Import außerdem Datum, Uhrzeit und Ort
+        von turnier.de (bei verlegten Spielen den neuen Termin) und zeigt bei Fehlern die eigentliche Meldung.
+        Im CourtSpot-Container als root:
+        <pre class="cmd" id="fixCmd"></pre>
+        <span class="muted" style="font-size:0.88rem"><b>Nach „bup updaten“ im CourtSpot-Menü erneut ausführen</b> –
+          das bup-Update ersetzt den bup-Ordner und damit den Fix. Mehrfaches Ausführen schadet nicht; Gleiches
+          direkt von GitHub:</span>
+        <pre class="cmd">curl -fsSL https://raw.githubusercontent.com/frankjuchim/courtspotlive/main/courtspot/turnierde-fix.sh | bash</pre></li>
     </ol>
   </section>
 
@@ -292,6 +303,7 @@
   'use strict';
   var el = CS.el;
   document.querySelectorAll('.srvUrl').forEach(function (e) { e.textContent = location.origin; });
+  document.getElementById('fixCmd').textContent = 'curl -fsSL ' + location.origin + '/courtspot/turnierde-fix.sh | bash';
   document.getElementById('installCmd').textContent =
     'curl -fsSL ' + location.origin + '/courtspot/install.sh | bash';
 
